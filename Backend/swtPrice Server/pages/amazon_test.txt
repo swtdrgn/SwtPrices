@@ -1,0 +1,1 @@
+http://webservices.amazon.com/onca/xml?AWSAccessKeyId=AKIAIMFAUBXVE76NCUUQ&AssociateTag=swtprices-20&Keywords=Shirt&Operation=ItemSearch&SearchIndex=Apparel&Service=AWSECommerceService&Timestamp=2012-01-22T14%3A50%3A34Z&Signature=Y2%2FZaW3ICKVbx5f%2Bl1BhbeoVX2m%2BzQ7dvXPf2je7GS0%3D

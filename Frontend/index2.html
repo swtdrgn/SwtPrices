@@ -1,0 +1,43 @@
+<? require("include/template.php"); ?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+	<? include_meta_content(); ?>
+	<body>
+	<? include_body_header(); ?>
+    
+    
+	<?php
+		connect_db();
+    ?>
+    
+    <? $result = mysql_query("SELECT * FROM  `steam` WHERE  `date` =  '" . date("Y-m-d") . "'" ); ?>
+    
+    <div class="steam">
+    
+    <h2>Steam</h2>
+    
+    <? while ($row = mysql_fetch_array($result,MYSQL_ASSOC)) { ?>
+    <a class="result" align="center">
+    	<img src="http://cdn.steampowered.com/v/gfx/apps/<?= $row["appid"] ?>/header_292x136.jpg"/><br/>
+    	<b><?= $row["name"]?></b>
+    	<p style="margin-bottom:3px;">
+    	<b>&rarr;</b> <?= $row["price"] ?>
+    	</p>
+    </a>
+    <?}?>
+    <div style="clear:both;"></div>
+    </div>
+    
+    
+    
+  </body>
+</html>
+
+<?php mysql_close(); ?>

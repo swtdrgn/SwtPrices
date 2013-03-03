@@ -1,0 +1,145 @@
+<?
+
+require("include/template.php");
+is_auth(true);
+
+?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+	<? include_meta_content(); ?>
+	
+	<style>
+		.offer_container{
+			width: 48%;
+			display: inline-block;
+		}
+	
+		.offer_list{
+			overflow-y:scroll;
+			background-color: white;
+			display: inline-block;
+			height: 100px;
+			width: 100%;
+		}
+		
+		.offer_list a{
+			display: block;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			cursor: default;
+		}
+
+		.offer_list a:hover{
+			background-color:red;
+		}
+		
+		a.button{
+			background-color: #EFEFEF;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			border: 1px solid black;
+			padding: 1px 5px 1px 5px;
+			font-weight:bold;
+			cursor: pointer;
+		}
+		
+		a.button:hover{
+			background-color: yellow;
+		}
+	</style>
+	
+	<script src="/include/mytrade.js"></script>
+	
+	<body>
+	<? include_body_header();
+		
+	connect_db();
+	
+	
+	$result = mysql_query("SELECT * FROM `steam_trade_offers` WHERE `bidder` = '" . $_SESSION["steam64"] . "' ORDER BY `expiration`, `bidder`;" );
+	
+	//echo "SELECT * FROM `steam_trade_offers` WHERE `hashkey` = '" . $_GET["tid"] . "' AND `created` = '" . $_GET["cdate"] . "' ORDER BY `expiration`, `bidder`;";
+	
+	//echo "SELECT * FROM `steam_trade` WHERE `hashkey` = '" . $_GET["tid"] . "' AND `created` = '" . $_GET["cdate"] . "';";
+	
+	
+	while ($row = mysql_fetch_array($result,MYSQL_ASSOC)){
+		$key = $row["expiration"] . $row["bidder"];
+		if( $row["type"]%3 == 0 ){
+			if( !isset($trade[$key]) ){
+				$trade[$key]="";
+			}
+			$trade[$key] .= "<a>" . urldecode($row["item_name"]) . "</a>";
+		}
+		else if( $row["type"]%3 == 1 ){
+			if( !isset($want[$key]) ){
+				$want[$key]="";
+			}
+			$want[$key] .= "<a>" . urldecode($row["item_name"]) . "</a>";
+		}
+		else if( $row["type"]%3 == 2 ){
+			$expire[$key] = $row["expiration"];
+			$note[$key] = urldecode($row["note"]);
+			$user[$key] = $row["creator"];
+			$hashkey[$key] = $row["hashkey"];
+			$date[$key] = $row["created"];
+			$bid[$key] = $row["bidkey"];
+			$biddate[$key] = $row["expiration"];
+			$type[$key] = $row["type"];
+		}
+	}
+	
+	if( isset($note) ){
+		foreach( $note as $key => $n ){
+			if( $type[$key] == 5 ){
+				echo "<div class=\"results_container\" style=\"padding-bottom: 10px;\"><h3 style=\"margin-bottom: 10px; background-color:green;\">Offer Accepted</h3><center>";
+			}
+			else if( $type[$key] == 8 ){
+				echo "<div class=\"results_container\" style=\"padding-bottom: 10px;\"><h3 style=\"margin-bottom: 10px; background-color:orange;\">Offer Declined</h3><center>";
+			}
+			else{
+				echo "<div class=\"results_container\" style=\"padding-bottom: 10px;\"><h3 style=\"margin-bottom: 10px;\">" . $date[$key] . " (Expires: <time>" . $expire[$key] . "</time>)</h3><center>";
+			}
+			if( isset($trade[$key]) ){
+				echo "<div class='offer_container' style='margin-right: 1%;'><b>Have</b><div class='offer_list'>" . stripslashes($trade[$key]) . "</div></div>";
+			}
+			else{
+				echo "<div class='offer_container' style='margin-right: 1%;'><b>Have</b><div class='offer_list'></div></div>";
+			}
+			if( isset($want[$key]) ){
+				echo "<div class='offer_container'><b>Want</b><div class='offer_list'>" . urldecode(stripslashes($want[$key])) . "</div></div>";
+			}
+			else{
+				echo "<div class='offer_container'><b>Want</b><div class='offer_list'></div></div>";
+			}
+			echo "<div class='offer_list' style='width: 97%; height: 50px; display: block; margin-bottom: 10px;'>" . $note[$key] . "</div>";
+			
+			echo "<div><a style='width:150px; display: inline-block;' href='offer.html?tid=" . urlencode($hashkey[$key]) . "&cdate=" . urlencode($date[$key]) . "' class='button' style='margin-right: 100px;'>View Offers</a>";
+			if($type[$key] == 5){
+				echo " <a class='button' href='http://steamcommunity.com/profiles/" . $user[$key] . "' target='_blank' style='width:150px; display: inline-block;'>View Steam Profile</a>";
+			}
+			else{
+				echo "<div style='float:left; width: 75px;'>&nbsp;</div>";
+				echo "<div style='float:right; width: 75px; text-align:right; padding-right: 10px;'><a href='/withdraw_offer.php?tid=" . $hashkey[$key] . "&dt=" . urlencode($date[$key]) . "' style=' font-size:10px;'>Withdraw Offer</a></div>";
+			}
+			echo "</center></div>";
+		}
+	}
+	
+	
+	
+		
+    ?>
+  </body>
+</html>
+
+<?php mysql_close(); ?>

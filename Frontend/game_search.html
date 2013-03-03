@@ -1,0 +1,107 @@
+<? require("include/template.php"); ?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+	<? include_meta_content(); ?>
+	<script src="/include/show_hide.js"></script>
+	<style>
+		b.fixleft{
+			margin-left: 10px;
+			position: absolute;
+		}
+	</style>
+	<body>
+	<? include_body_header(); ?>
+    
+    
+	<?php
+		connect_db();
+		
+		$token = strtok($_GET["query"]," ");
+		$query = "SELECT * FROM  `games`";
+		if( $token !== false ){
+			$query .= " WHERE ";
+			$query .= "`name` LIKE \"%$token%\"";
+			$token = strtok(" ");
+		}
+		
+		while ($token !== false) {
+			$query .= " OR `name` LIKE \"%$token%\"";
+			$token = strtok(" ");
+		}
+		
+		if( isset($_GET["page"]) && is_numeric($_GET["page"]) ){
+			$query .= " LIMIT " . ($_GET["page"]-1)*30 . " , 31";
+		}
+		else{
+			$query .= " LIMIT 0 , 31";
+		}
+		
+		$result = mysql_query($query);
+	?>
+    
+    <div id="steam" class="results_container">
+    
+    <h2>Results</h2>
+	
+    <? for ( $i=0 ; ($row = mysql_fetch_array($result,MYSQL_ASSOC)) && $i<30 ; $i++ ) { ?>
+    <div class="result" style="height:275px;">
+		<? if(!is_null($row["appid"])){ ?>
+			<a href="/game.html?appid=<?=$row["appid"]?>"><img style="height:136px;" src="http://cdn.steampowered.com/v/gfx/apps/<?= $row["appid"] ?>/header_292x136.jpg"/><br/>
+		<? }
+		else{
+			echo '<div style="height:136px;"></div>';
+		}
+		?>	
+		
+			<div style="width: 300px;"><b><?= $row["name"]?></b></div></a>
+		
+		
+    	<div class="links">
+    	<? if(!is_null($row["appid"])){ ?>
+			<a href="http://store.steampowered.com/app/<?=$row["appid"]?>">
+				<div align="left"><b class="fixleft">Steam:</b></div>$<?= $row["steam"] ?>
+			</a>
+		<? } ?>
+		<? if(!empty($row["dp"])){ ?>
+			<? if(!is_null($row["AmazonDL"])){ ?>
+			<a href="http://www.amazon.com/gp/product/<?=$row["dp"]?>?tag=swtprices-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=<?=$row["dp"]?>">
+				<div align="left"><b class="fixleft">Amazon [DL]:</b></div>$<?= $row["AmazonDL"] ?>
+			</a>
+			<? } ?>
+			<? if(!is_null($row["AmazonPC"])){ ?>
+			<a href="http://www.amazon.com/gp/product/<?=$row["dp"]?>?tag=swtprices-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=<?=$row["dp"]?>">
+				<div align="left"><b class="fixleft">Amazon [PC]:</b></div>$<?= $row["AmazonPC"] ?>
+			</a>
+			<? } ?>
+		<? } ?>
+    	</div>
+    </div>
+    <?}?>
+<?	if( (isset($_GET["page"]) && $_GET["page"] > 1) || $row ){ ?>
+	<div align=left style="margin:10px 10px 0px 10px;">
+<?		if( isset($_GET["page"]) && $_GET["page"] > 1 ){ ?>
+			<a href="game_search.html?query=<?=$_GET["query"]?>&page=<?=$_GET["page"]-1?>">Previous Page</a>
+<?		}		?>
+<?		if( $row ){
+			if( isset($_GET["page"]) ){ $page=$_GET["page"]; } else{ $page = 0; }
+?>
+			<a style= "float:right;" href="game_search.html?query=<?=$_GET["query"]?>&page=<?=$page+1?>">Next Page</a>
+<?		}		?>
+	<div style="clear:right"></div>
+	</div>
+<?	}	?>
+    </div>
+    
+    
+    
+  </body>
+</html>
+
+<?php mysql_close(); ?>

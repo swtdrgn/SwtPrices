@@ -1,0 +1,47 @@
+<?php require("include/template.php"); ?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<? include_meta_content(); ?>
+	<script src="/include/show_hide.js"></script>
+	<body>
+	<? include_body_header(); ?>
+	
+	<?php
+		connect_db();
+		//@mysql_connect() or die( "Unable to connect to database server");
+		//@mysql_select_db("swtprices") or die( "Unable to select database");
+    ?>
+    
+    <? $result = mysql_query("SELECT * FROM  `steam_frontpage`" ); ?>
+    
+    <div id="steam" class="results_container">
+    
+    <h2>Steam</h2>
+	
+    <? while ($row = mysql_fetch_array($result,MYSQL_ASSOC)) { ?>
+    <a style="overflow: hidden; width: 310px;" <? if( $row["price"] > $row["old_price"] ){ ?>class="bad_result"<? } else {?>class="result"<? } ?> href="http://store.steampowered.com/app/<?=$row["appid"]?>">
+    	<img src="http://cdn.steampowered.com/v/gfx/apps/<?= $row["appid"] ?>/header_292x136.jpg"/><br/>
+		<? if( $row["price"] > $row["old_price"] ){ ?><div><center><img src="/images/x.png"/></center></div><? } ?>
+    	<b style="display: block; white-space: nowrap;"><?= $row["name"]?></b>
+    	<p style="margin-bottom:3px;">
+    	<b>Price:</b> $<?= $row["old_price"] ?> <b>&rarr;</b> $<?= $row["price"] ?><br/>
+    	<b>MSRP:</b> $<?= $row["old_msrp"] ?> <b>&rarr;</b> $<?= $row["msrp"] ?>
+    	</p>
+    </a>
+    <?}?>
+    
+    <div style="clear:both; margin-top: 5px;" align="right"><a id="click" style="margin-right: 10px; cursor: pointer;" onClick="this.innerHTML = toggle_bad_results();">Show All Changes</a></div>
+    </div>
+    
+    
+    
+  </body>
+</html>
+
+<?php mysql_close(); ?>

@@ -1,0 +1,143 @@
+<? require("include/template.php");
+if( is_auth(true) ){}
+?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+	<? include_meta_content(); ?>
+	
+	<style>
+		.offer_container{
+			width: 48%;
+			display: inline-block;
+		}
+	
+		.offer_list{
+			overflow-y:scroll;
+			background-color: white;
+			display: inline-block;
+			height: 100px;
+			width: 100%;
+		}
+		
+		.offer_list a{
+			display: block;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			cursor: default;
+		}
+
+		.offer_list a:hover{
+			background-color:red;
+		}
+		
+		a.button{
+			background-color: #EFEFEF;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			border: 1px solid black;
+			padding: 1px 5px 1px 5px;
+			font-weight:bold;
+			cursor: pointer;
+			width: 150px;
+			display: inline-block;
+		}
+		
+		a.button:hover{
+			background-color: yellow;
+		}
+	</style>
+	
+	<script src="/include/mytrade.js"></script>
+	
+	<body>
+	<? include_body_header();
+		
+	connect_db();
+	
+	
+	if( $result = mysql_query("SELECT * FROM `steam_trade` WHERE `creator` = '" . $_SESSION["steam64"] . "' ORDER BY `created`, `type`") ){
+	
+		$note = array();
+	
+		while ($row = mysql_fetch_array($result,MYSQL_ASSOC)){
+			if( $row["type"]%3 == 0 ){
+				if( !isset($trade[$row["created"]]) ){
+					$trade[$row["created"]]="";
+				}
+				$trade[$row["created"]] .= "<a>" . urldecode($row["item_name"]) . "</a>";
+			}
+			else if( $row["type"]%3 == 1 ){
+				if( !isset($want[$row["created"]]) ){
+					$want[$row["created"]]="";
+				}
+				$want[$row["created"]] .= "<a>" . urldecode($row["item_name"]) . "</a>";
+			}
+			else if( $row["type"]%3 == 2 ){
+				$expire[$row["created"]] = $row["expiration"];
+				$note[$row["created"]] = urldecode($row["note"]);
+				$hashkey[$row["created"]] = $row["hashkey"];
+				$type[$row["created"]] = $row["type"];
+			}
+		}
+		
+		foreach( $note as $date => $n ){
+			if( $type[$date] == 5 ){
+				echo "<div class=\"results_container\" style=\"padding-bottom: 10px;\"><h3 style=\"margin-bottom: 10px; background-color: green;\">" . $date . " (Expires: <time>" . $expire[$date] . "</time>)</h3><center>";
+			}
+			else{
+				echo "<div class=\"results_container\" style=\"padding-bottom: 10px;\"><h3 style=\"margin-bottom: 10px;\">" . $date . " (Expires: <time>" . $expire[$date] . "</time>)</h3><center>";
+			}
+			if( isset($trade[$date]) ){
+				echo "<div class='offer_container' style='margin-right: 1%;'><b>Have</b><div class='offer_list'>" . stripslashes(urldecode($trade[$date])) . "</div></div>";
+			}
+			else{
+				echo "<div class='offer_container' style='margin-right: 1%;'><b>Have</b><div class='offer_list'></div></div>";
+			}
+			if( isset($want[$date]) ){
+				echo "<div class='offer_container'><b>Want</b><div class='offer_list'>" . stripslashes(urldecode($want[$date])) . "</div></div>";
+			}
+			else{
+				echo "<div class='offer_container'><b>Want</b><div class='offer_list'></div></div>";
+			}
+			//echo "<div style='overflow-y:scroll; background-color:white; width: 48%; display: inline-block;'>" . $tradetype[$date] . "</div>";
+			echo "<div class='offer_list' style='width: 97%; height: 50px; display: block; margin-bottom: 10px;'>" . stripslashes(urldecode($n)) . "</div>";
+			echo "<a style='margin-left: 100px;' href='offer.html?tid=" . $hashkey[$date] . "&cdate=" . urlencode($date) . "' class='button'>View Offers</a>";
+			if( $type[$date] < 3 ){
+				echo " <a class='button' onclick='renew_trade(this,\"" . $date . "\")'>Renew Post</a>";
+			}
+			else if( $type[$date] == 5 ){
+				//echo "SELECT * FROM `steam_trade_offers` WHERE `creator` = '" . $_SESSION["steam64"] . "' AND `created` = '" . $date . "' AND `type` = 5";
+				$result = mysql_query("SELECT * FROM `steam_trade_offers` WHERE `creator` = '" . $_SESSION["steam64"] . "' AND `created` = '" . $date . "' AND `type` = 5");
+				if( $row = mysql_fetch_array($result,MYSQL_ASSOC) ){
+					echo " <a class='button' href='http://steamcommunity.com/profiles/" . $row["bidder"] . "' target='_blank'>View Steam Profile</a>";
+				}
+			}
+			echo "<div style='float:right; width: 100px;' align='right'><a style='margin-right: 10px; font-size:10px; cursor: pointer;' onclick='delete_trade(this,\"" . $date . "\")'>Delete Post</a></div>";
+			echo "</center></div>";
+		}
+	}
+	else{
+?>
+	<div class="results_container" style="padding-bottom: 10px;">
+		<h3 style="margin-bottom: 10px; background-color: green;">No Results</h3>
+		<center>
+			You have no trades posted.
+		</center>
+	</div>
+	
+	<?
+	}
+    ?>
+  </body>
+</html>
+
+<?php mysql_close(); ?>

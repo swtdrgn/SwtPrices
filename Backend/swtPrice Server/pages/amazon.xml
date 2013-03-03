@@ -1,0 +1,8 @@
+GET /onca/xml?AWSAccessKeyId=AKIAIMFAUBXVE76NCUUQ&AssociateTag=swtprices-20&Keywords=Shirt&Operation=ItemSearch&SearchIndex=Apparel&Service=AWSECommerceService&Timestamp=2012-01-20T22%3A28%3A10Z&Signature=IFbWNALoYNTyNWdtTcPHBXnDWgFxeDgnl52206K6qDg%3D
+
+
+<?xml version="1.0"?>
+<ItemSearchErrorResponse xmlns="http://ecs.amazonaws.com/doc/2005-10-05/"><Error><Code>SignatureDoesNotMatch</Code><Message>The request signature we calculated does not match the signature you provided. Check your AWS Secret Access Key and signing method. Consult the service documentation for details.</Message></Error><RequestID>a37b4ec4-6026-43a0-9476-a63a8b679489</RequestID></ItemSearchErrorResponse>
+
+GET /onca/xml?AWSAccessKeyId=AKIAIMFAUBXVE76NCUUQ&AssociateTag=swtprices-20&Keywords=Shirt&Operation=ItemSearch&SearchIndex=Apparel&Service=AWSECommerceService&Timestamp=2012-01-20T22%3A28%3A10Z&Signature=IFbWNALoYNTyNWdtTcPHBXnDWgFxeDgnl52206K6qDg%3D
+

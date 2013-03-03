@@ -1,0 +1,24 @@
+<?
+require("include/template.php");
+if( is_auth() && strcmp(sha1($_SESSION["steam64"]),$_GET["tid"]) == 0 ){
+	
+	$query = "";
+	
+	connect_db();
+	
+	//$query = "DELETE FROM `swtprices`.`steam_trade_offers`";
+	
+	
+	$query = "UPDATE  `swtprices`.`steam_trade_offers` SET  `type` =  `type`+3 WHERE  `steam_trade_offers`.`creator` =  '" . mysql_real_escape_string($_SESSION["steam64"]) . "' AND  `steam_trade_offers`.`created` =  '" . mysql_real_escape_string($_GET["cdate"]) . "' AND `steam_trade_offers`.`expiration` =  '" . mysql_real_escape_string($_GET["bdate"]) . "' AND  `steam_trade_offers`.`bidkey` =  '" . mysql_real_escape_string($_GET["bid"]) . "' AND `steam_trade_offers`.`type` < 3";
+	mysql_query($query);
+	
+	$query = "UPDATE  `swtprices`.`steam_trade` SET  `type` =  `type`+3 WHERE `steam_trade`.`creator` =  '" . mysql_real_escape_string($_SESSION["steam64"]) . "' AND  `steam_trade`.`created` =  '" . mysql_real_escape_string($_GET["cdate"]) . "' AND `steam_trade`.`type` < 3";
+	mysql_query($query);
+	
+	mysql_close();
+	
+	header("Location: /offer.html?tid=" . $_GET["tid"] . "&cdate=" . $_GET["cdate"] );
+}
+
+
+?>

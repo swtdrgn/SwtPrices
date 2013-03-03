@@ -1,0 +1,2 @@
+serviceClass: swtprices.client.GreetingService
+path: 01283C3B124C9FB840AB70ABB797E832.gwt.rpc

@@ -1,0 +1,161 @@
+<? require("include/template.php");
+if( is_auth(true) ){
+?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<? include_meta_content(); ?>
+	<style>
+		td{
+			border: 1px solid black;
+		}
+		tr.dropmessage{
+			cursor: pointer;
+		}
+		
+		input.button2{
+			background-color: #AFEFEF;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			border: 1px solid black;
+			padding: 1px 5px 1px 5px;
+			font-weight:bold;
+			cursor: pointer;
+			width: 100px;
+			display: inline-block;
+			text-align: center;
+		}
+		
+		input.button2:hover{
+			background-color: yellow;
+		}
+		
+		input.button1{
+			background-color: #EFAFEF;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			border: 1px solid black;
+			padding: 1px 5px 1px 5px;
+			font-weight:bold;
+			cursor: pointer;
+			width: 100px;
+			display: inline-block;
+			text-align: center;
+		}
+		
+		input.button1:hover{
+			background-color: yellow;
+		}
+	</style>
+	
+	<script type="text/javascript">
+		var xmlhttp = new XMLHttpRequest();
+		
+		function toggle( id ){
+			var element = document.getElementById(id);
+			if( element.style.display == 'none' ){
+				element.style.display = 'table-cell';
+			}
+			else{
+				element.style.display = 'none';
+			}
+		}
+		
+		function del( element,id ){
+			var url = 'delete_message.php';
+			var tdelements = element.parentNode.getElementsByTagName("td");
+			var params = "sender=" + tdelements[0].innerHTML + "&time=" + encodeURIComponent(tdelements[2].innerHTML);
+			
+			xmlhttp.open("POST", url, true);
+			xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+			xmlhttp.onreadystatechange = function() {
+				if(xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+					element.parentNode.style.display = 'none';
+					document.getElementById(id).parentNode.style.display = 'none';
+				}
+			}
+			
+			xmlhttp.send(params);
+		}
+	</script>
+	<body>
+	<? include_body_header(); ?>
+	
+<?
+	connect_db();
+	$query = "SELECT * FROM `swtprices`.`message` WHERE `receiver` = '" . mysql_real_escape_string($_SESSION["steam64"]) . "' ORDER BY `time` desc;";
+	$result = mysql_query($query);
+	mysql_close();
+	
+	echo "SELECT * FROM `swtprices`.`message` WHERE `receiver` = '" . mysql_real_escape_string($_SESSION["steam64"]) . "' ORDER BY `time` desc;";
+	
+?>
+	
+	<div class="results_container" style="padding-bottom: 10px;"><h3 style="background-color: white; margin-bottom: 10px;">Inbox</h3>
+		<center>
+		<table style="width: 95%; border: 1px solid black; text-align: center;" cellspacing="0">
+			<tr style="background-color: lime;">
+				<td style="width:200px;">Sender</td>
+				<td style="overflow: hidden;" >Subject</td>
+				<td style="width:200px;">Date</td>
+				<td style="width:25px;"></td>
+			</tr>
+<?
+			
+			$i = false; $index = 0;
+			while( $row = @mysql_fetch_array($result,MYSQL_ASSOC) ){
+				$index++;
+				if( $i ){ echo "<tr class=\"dropmessage\" style=\"background-color: pink;\">"; $i = false; $bcolor = "button1"; } else{ echo "<tr class=\"dropmessage\" style=\"background-color: skyblue;\">"; $i = true; $bcolor = "button2"; }
+?>				
+				<td onclick="toggle(<?=$index?>);"><?= $row["sender"] ?></td>
+				<td onclick="toggle(<?=$index?>);"><?= urldecode($row["subject"]) ?></td>
+				<td onclick="toggle(<?=$index?>);"><?= $row["time"] ?></td>
+<?				if( $i ){				?>
+					<td onclick="del(this,<?= $index ?>);"><img src="/images/pink_trash.png" style="height:20px;" /></td>
+<?				} else{					?>
+					<td onclick="del(this,<?= $index ?>);"><img src="/images/blue_trash.png" style="height:20px;" /></td>
+<?				}						?>
+			</tr>
+			<tr>
+				<td colspan="4" style="padding-left: 10px; padding-right: 10px; text-align: left; background-color: white; display: none; font-family: Courier;" id="<?= $index ?>">
+					<?= urldecode($row["body"]) ?>
+					<form name="trade_form" action="compose.html" method="post">
+						<textarea name="recipient" style="display:none;"><?= $row["sender"] ?></textarea>
+						<textarea name="subject" style="display:none;">Re:<?= urldecode($row["subject"]) ?></textarea>
+						<textarea name="body" style="display:none;">
+>>>>>>>>> Re:<?= urldecode($row["subject"]) ?> <<<<<<<<<
+<?= str_replace("<br/>","\n",urldecode($row["body"])) ?>
+
+=======================<? for($j=0;$j<strlen(urldecode($row["subject"]));$j++){ echo "="; } ?>
+						</textarea>
+						<center style="display: block; margin-top: 20px; margin-bottom: 10px;">
+						<input type="submit" class="<?=$bcolor?>" value="Reply" />
+						</center>
+					</form>
+				</td>
+			</tr>
+<? 			}
+			if( $index == 0 ){
+				echo "<tr class=\"dropmessage\" style=\"background-color: skyblue;\" />";
+					echo "<td style=\"cursor:default;\" colspan=\"4\">Inbox is empty.</td>";
+				echo "</tr>";
+			}
+?>
+		</table>
+		</center>
+	</div>
+	
+  </body>
+</html>
+
+<?
+}
+?>

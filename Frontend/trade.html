@@ -1,0 +1,180 @@
+<? require("include/template.php"); ?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+	<? include_meta_content(); ?>
+	
+	<style>
+		.offer_container{
+			width: 48%;
+			display: inline-block;
+		}
+	
+		.offer_list{
+			overflow-y:scroll;
+			background-color: white;
+			display: inline-block;
+			height: 100px;
+			width: 100%;
+		}
+		
+		.offer_list a{
+			display: block;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			cursor: default;
+		}
+
+		.offer_list a:hover{
+			background-color:red;
+		}
+		
+		a.button{
+			background-color: #EFEFEF;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			border: 1px solid black;
+			padding: 1px 5px 1px 5px;
+			font-weight:bold;
+			cursor: pointer;
+			width: 100px;
+			display: inline-block;
+		}
+		
+		a.button:hover{
+			background-color: yellow;
+		}
+	</style>
+	
+	<script src="/include/mytrade.js"></script>
+	
+	<body>
+	<? include_body_header(); ?>
+	
+	<div class="results_container" style="padding-bottom: 10px;"><h3 style="background-color: white; margin-bottom: 10px;">Trade Search</h3>
+	<form name="trade_form" action="trade.html" method="get">
+		<b style="float:left; position: absolute;">Have:</b><input autocomplete="off" type="text" name="have" style="width: 90%; text-align: center;" /> <br/>
+		<b style="float:left; position: absolute;">Want:</b><input autocomplete="off" type="text" name="want" style="width: 90%; text-align: center;" /> <br/>
+		<input type="submit" value="Find Trade" />
+	</form>
+	</div>
+	
+	<?
+		
+	connect_db();
+	
+	if( isset($_GET["have"]) || isset($_GET["want"]) ){
+		$query_have = "";
+		$query_want = "";
+		$query_have_where = "WHERE ";
+		$query_want_where = "WHERE ";
+		if( isset($_GET["have"]) && !empty($_GET["have"]) ){
+			$query_have = ", (SELECT DISTINCT `creator`,`created` FROM `steam_trade` WHERE (";
+			$token = strtok($_GET["have"]," ");
+			if( $token !== false ){
+				$query_have .= "`item_name` LIKE \"%" . urlencode($token) . "%\" ";
+				$token = strtok(" ");
+			}			
+			while ($token !== false) {
+				$query_have .= "OR `item_name` LIKE \"%" . urlencode($token) . "%\" ";
+				$token = strtok(" ");
+			}
+			$query_have .= ") AND `type` = 0 ) AS HAVE ";
+			$query_have_where .= "`steam_trade`.`created` = HAVE.`created` AND `steam_trade`.`creator` = HAVE.`creator` ";
+			if( isset($_GET["want"]) && !empty($_GET["want"]) ){
+				$query_want_where = "AND ";
+			}
+		}
+		else{
+			$query_have_where = "";
+		}
+		
+		if( isset($_GET["want"]) && !empty($_GET["want"]) ){
+			
+			$query_want = ", (SELECT DISTINCT `creator`,`created` FROM `steam_trade` WHERE (";
+			$token = strtok($_GET["want"]," ");
+			if( $token !== false ){
+				$query_want .= "`item_name` LIKE \"%" . urlencode($token) . "%\" ";
+				$token = strtok(" ");
+			}	
+			while ($token !== false) {
+				$query_want .= "OR `item_name` LIKE \"%" . urlencode($token) . "%\" ";
+				$token = strtok(" ");
+			}
+			$query_want .= ") AND `type` = 1 ) AS WANT ";
+			$query_want_where .= "`steam_trade`.`created` = WANT.`created` AND `steam_trade`.`creator` = WANT.`creator`";
+		}
+		else{
+			$query_want_where = "";
+		}
+		
+		$query = "SELECT * FROM  `steam_trade` " . $query_have . $query_want . $query_have_where . $query_want_where . " LIMIT 0, 30;";
+		
+	}
+	else{
+		$query = "SELECT * FROM `steam_trade` , (SELECT DISTINCT `creator`,`created` FROM `steam_trade` WHERE `type` = 2 LIMIT 0, 3) AS UNIQ WHERE `steam_trade`.`created` = UNIQ.`created` AND `steam_trade`.`creator` = UNIQ.`creator` ORDER BY `steam_trade` . `created`, `steam_trade` . `type`";
+	}
+	
+	//echo $query;
+	
+	$result = mysql_query($query);
+	
+	while ($row = @mysql_fetch_array($result,MYSQL_ASSOC)){
+		$key = sha1($row["creator"]) . $row["created"];
+		if( $row["type"] == 0 ){
+			if( !isset($trade[$key]) ){
+				$trade[$key]="";
+			}
+			$trade[$key] .= "<a>" . urldecode($row["item_name"]) . "</a>";
+		}
+		else if( $row["type"] == 1 ){
+			if( !isset($want[$key]) ){
+				$want[$key]="";
+			}
+			$want[$key] .= "<a>" . urldecode($row["item_name"]) . "</a>";
+		}
+		else if( $row["type"] == 2 ){
+			$expire[$key] = $row["expiration"];
+			$note[$key] = urldecode($row["note"]);
+			$user[$key] = $row["creator"];
+			$date[$key] = $row["created"];
+		}
+	}
+	
+	if( isset($note) ){
+		foreach( $note as $key => $n ){
+			echo "<div class=\"results_container\" style=\"padding-bottom: 10px;\"><h3 style=\"margin-bottom: 10px; background-color: skyblue;\">" . $date[$key] . " (Expires: <time>" . $expire[$key] . "</time>)</h3><center>";
+			if( isset($trade[$key]) ){
+				echo "<div class='offer_container' style='margin-right: 1%;'><b>Have</b><div class='offer_list'>" . stripslashes(urldecode($trade[$key])) . "</div></div>";
+			}
+			else{
+				echo "<div class='offer_container' style='margin-right: 1%;'><b>Have</b><div class='offer_list'></div></div>";
+			}
+			if( isset($want[$key]) ){
+				echo "<div class='offer_container'><b>Want</b><div class='offer_list'>" . stripslashes(urldecode($want[$key])) . "</div></div>";
+			}
+			else{
+				echo "<div class='offer_container'><b>Want</b><div class='offer_list'></div></div>";
+			}
+			//echo "<div style='overflow-y:scroll; background-color:white; width: 48%; display: inline-block;'>" . $tradetype[$key] . "</div>";
+			echo "<div class='offer_list' style='width: 97%; height: 50px; display: block; margin-bottom: 10px;'>" . stripslashes(urldecode($note[$key])) . "</div>";
+			echo "<div><a href='offer.html?tid=" . urlencode(sha1($user[$key])) . "&cdate=" . urlencode($date[$key]) . "' class='button'>View Offers</a>";
+			if( isset($_SESSION["steam64"]) && strcmp($_SESSION["steam64"],$user[$key]) != 0 ){
+				echo " <a href='make_offer.html?tid=" . urlencode(sha1($user[$key])) . "&cdate=" . urlencode($date[$key]) . "' class='button'>Make Offers</a>";
+			}
+			echo "</div></center></div>";
+		}
+	}
+    ?>
+  </body>
+</html>
+
+<?php mysql_close(); ?>

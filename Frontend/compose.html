@@ -1,0 +1,142 @@
+<? require("include/template.php"); ?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+	<? include_meta_content(); ?>
+	
+	<style>
+		.offer_container{
+			width: 48%;
+			display: inline-block;
+		}
+	
+		.offer_list{
+			overflow-y:scroll;
+			background-color: white;
+			display: inline-block;
+			height: 100px;
+			width: 100%;
+		}
+		
+		.offer_list a{
+			display: block;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			cursor: default;
+		}
+
+		.offer_list a:hover{
+			background-color:red;
+		}
+		
+		a.button{
+			background-color: #EFEFEF;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			border: 1px solid black;
+			padding: 1px 5px 1px 5px;
+			font-weight:bold;
+			cursor: pointer;
+			width: 100px;
+			display: inline-block;
+		}
+		
+		a.button:hover{
+			background-color: yellow;
+		}
+	</style>
+	
+	<script src="/include/mytrade.js"></script>
+	
+	<body>
+	<? include_body_header(); ?>
+<?	
+	/*if( issset($_GET["tid"]) && issset($_GET["tdate"]) ){
+		connect_db();
+		$result = mysql_query("SELECT * FROM `steam_trade` WHERE `hashkey` = '" . $_GET["tid"] . "' AND `created` = '" . $_GET["cdate"] . "' LIMIT 0,1;" );
+		if( $row = mysql_fetch_array($result,MYSQL_ASSOC) ){
+			
+		}
+		mysql_close();
+	}*/
+	
+	
+	if( isset($_GET["bid"]) ){
+		$bid = $_GET["bid"];
+	} else if( isset($_POST["bid"]) ){
+		$bid = $_POST["bid"];
+	}
+	if( isset($_GET["tid"]) ){
+		$tid = $_GET["tid"];
+	} else if( isset($_POST["tid"]) ){
+		$tid = $_POST["tid"];
+	}
+	if( isset($_GET["tdate"]) ){
+		$tdate = $_GET["tdate"];
+	} else if( isset($_POST["tdate"]) ){
+		$tdate = $_POST["tdate"];
+	}
+	if( isset($_GET["body"]) ){
+		$body = $_GET["body"];
+	} else if( isset($_POST["body"]) ){
+		$body = $_POST["body"];
+	} else{
+		$body = "";
+	}
+	if( isset($_GET["subject"]) ){
+		$subject = $_GET["subject"];
+	} else if( isset($_POST["subject"]) ){
+		$subject = $_POST["subject"];
+	} else{
+		$subject = "";
+	}
+	if( isset($_GET["recipient"]) ){
+		$recipient = $_GET["recipient"];
+	} else if( isset($_POST["recipient"]) ){
+		$recipient = $_POST["recipient"];
+	} else{
+		$recipient = "";
+	}
+	
+	
+?>
+	
+	<div class="results_container" style="padding-bottom: 10px;"><h3 style="background-color: white; margin-bottom: 10px;">Trade Search</h3>
+	<form name="trade_form" action="send_message.php" method="post">
+		<b style="float:left; position: absolute;">Recipient:</b>
+<?
+			if(isset($tid) && isset($tdate) && isset($bid)){ ?>
+				<input autocomplete="off" disabled type="text" name="receipent" style="width: 90%; text-align: center;" value="<?= $bid . $tid ?>"/><br/>
+<?
+			} else{
+				echo '<input autocomplete="off" type="text" name="receipent" style="width: 90%; text-align: center;" value="' . mysql_real_escape_string($recipient) . '" /><br/>';
+			}
+?>
+		<b style="float:left; position: absolute;">Title:</b><input autocomplete="off" type="text" name="title" style="width: 90%; text-align: center;" value="<?= addslashes($subject)?>" /><br/>
+		<textarea name="body" style="width: 90%; height: 150px; resize: vertical;"><?= $body ?></textarea><br/>
+		<input type="submit" value="Send Message" />
+<?		if( isset($bid) ){	?>
+			<input type="hidden" name="bid" value="<?= $bid ?>" />
+<?		}	?>
+<?		if( isset($tid) ){	?>
+			<input type="hidden" name="tid" value="<?= $tid ?>" />
+<?		}	?>
+<?		if( isset($tdate) ){	?>
+			<input type="hidden" name="tdate" value="<?= $tdate ?>" />
+<?		}	?>
+		
+	</form>
+	</div>
+	
+  </body>
+</html>
+
+<? //php mysql_close(); ?>

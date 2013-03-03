@@ -1,0 +1,305 @@
+/** Add css rules here for your application. */
+
+
+/** Example rules used by the template application (remove for your app) */
+
+body{
+	padding: 0px;
+	margin: 0px;
+	background-color: #2E2E2E;
+}
+
+img{
+	border: none;
+}
+
+a,a:hover,a:visited,a:active{
+	text-decoration: none;
+	color: black;
+}
+
+.header{
+	/* For WebKit (Safari, Google Chrome etc) */
+	background: -webkit-gradient(linear, left top, left bottom, from(#0000ff), to(#2e2e2e));
+	/* For Mozilla/Gecko (Firefox etc) */
+	background: -moz-linear-gradient(top, #0000ff, #2e2e2e);
+	/* For Internet Explorer 5.5 - 7 */
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#0000FF, endColorstr=#2e2e2e);
+	/* For Internet Explorer 8 */
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#0000FF, endColorstr=#2e2e2e)";
+	padding: 10px 0px 0px 20px;
+	border-bottom: 1px solid white;
+	margin-bottom: 30px;
+	min-width: 500px;
+}
+
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #FFFFFF;
+  margin: 0px;
+  text-align: left;
+  padding: 0px 20px 0px 0px;
+  margin-bottom: 10px;
+}
+
+h2{
+	text-align: center;
+	margin: 0px;
+}
+
+h3{
+	background-color: red;
+	border-top-left-radius: 15px;
+	border-top-right-radius: 15px;
+	-moz-border-radius-topleft: 15px;
+	-moz-border-radius-topright: 15px;
+	text-align: center;
+	margin: 0px;
+}
+
+#swtprices_logo_header{
+	font-size: 2em;
+ 	font-weight: bold;
+ 	color: #777777;
+ 	margin: 10px 0px 0px;
+ 	text-align: left;
+}
+
+.dropdown{
+	display:inline-block;
+}
+
+.dropdown div{
+	background-color: #EFEFEF;
+	display: none;
+	position:absolute;
+	border: 1px solid black;
+	border-top-right-radius: 15px;
+	border-bottom-left-radius: 15px;
+	border-bottom-right-radius: 15px;
+	-moz-border-radius-topright: 15px;
+	-moz-border-radius-bottomleft: 15px;
+	-moz-border-radius-bottomright: 15px;
+	width: 300px;
+	text-align: center;
+	z-index: 100;
+	font-weight: bold;
+}
+
+.firstdrop{
+	display: block;
+	cursor: pointer;
+	border-top-right-radius: 15px;
+	-moz-border-radius-topright: 15px;
+}
+
+.firstdrop2{
+	display: block;
+	cursor: pointer;
+	border-top-left-radius: 15px;
+	-moz-border-radius-topleft: 15px;
+}
+
+a.first:hover{
+	background-color: #FFFF00;
+}
+
+.lastdrop{
+	display: block;
+	cursor: pointer;
+	border-bottom-right-radius: 10px;
+	border-bottom-left-radius: 10px;
+	-moz-border-radius-bottomleft: 15px;
+	-moz-border-radius-bottomright: 15px;
+}
+
+.dropdown div a{
+	display: block;
+	cursor: pointer;
+}
+
+.dropdown div a:hover{
+	background-color: #FFFF00;
+}
+
+.dropdown2{
+	display:inline-block;
+}
+
+.dropdown2 div{
+	background-color: #EFEFEF;
+	display: none;
+	position:absolute;
+	border: 1px solid black;
+	border-top-left-radius: 15px;
+	border-bottom-left-radius: 15px;
+	border-bottom-right-radius: 15px;
+	-moz-border-radius-topleft: 15px;
+	-moz-border-radius-bottomleft: 15px;
+	-moz-border-radius-bottomright: 15px;
+	width: 300px;
+	text-align: center;
+	z-index: 100;
+	font-weight: bold;
+	margin-left: -200px;
+}
+
+.dropdown2 div a{
+	display: block;
+	cursor: pointer;
+}
+
+.dropdown2 div a:hover{
+	background-color: #FFFF00;
+}
+
+.nav{
+	margin-top:10px;
+	background-color:#E0E0E0;
+	border: 1px solid black;
+	border-bottom: 0px;
+	display: inline-block;
+	border-top-left-radius: 15px;
+	border-top-right-radius: 15px;
+	-moz-border-radius-topleft: 15px;
+	-moz-border-radius-topright: 15px;
+	-webkit-border-top-left-radius: 15px;
+	-webkit-border-top-right-radius: 15px;
+	width: 100px;
+	text-align: center;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+a.nav:hover{
+	background-color:yellow;
+}
+
+.sendButton {
+  display: block;
+  font-size: 16pt;
+}
+
+.dialogVPanel {
+  margin: 5px;
+}
+
+.serverResponseLabelError {
+  color: red;
+}
+
+div.result{
+	top: 0px;
+	vertical-align: top;
+}
+
+.result{
+	background-color: #E0E0E0;
+	border: 2px solid black;
+	border-radius: 15px;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+	margin: 10px 2.5px 0px 2.5px;
+	padding: 5px;
+	color: black;
+	text-align: center;
+	position: relative;
+	display: inline-block;
+}
+
+.result a{
+	color: black;
+	text-decoration: none;
+}
+
+a.result:hover{
+	color: black;
+	text-decoration: none;
+}
+
+.result img{
+	border-radius: 15px;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+.bad_result{
+	background-color: #E0E0E0;
+	border: 2px solid black;
+	border-radius: 15px;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+	margin: 10px 2.5px 0px 2.5px;
+	padding: 5px;
+	color: black;
+	text-align: center;
+	position: relative;
+	display: none;
+}
+
+.bad_result a{
+	color: black;
+	text-decoration: none;
+}
+
+a.bad_result:hover{
+	color: black;
+	text-decoration: none;
+}
+
+.bad_result img{
+	border-radius: 15px;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+.results_container{
+	border-radius: 20px;
+	-moz-border-radius: 20px;
+	-webkit-border-radius: 15px;
+	background-color: gray;
+	border: 1px solid black;
+	margin: 5px 10px 5px;
+	padding-bottom: 10px;
+	min-width: 400px;
+	text-align: center;
+}
+
+.bad_result div{
+	position: absolute;
+	text-align:center;
+	width:100%;
+	height: 100%;
+	top: 0px;
+	left: 0px;
+	opacity:0.6;
+}
+
+.bad_result div img{
+	border: none;
+	height: 100%;
+	filter:alpha(opacity=60);
+	bottom:0px
+}
+
+.links{
+	margin-top: 15px;
+	margin-bottom: 0px;
+}
+
+.links a{
+	display: block;
+	border-radius: 15px;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+	padding-right: 10px;
+}
+
+.links a:hover{
+	background-color:red;
+}

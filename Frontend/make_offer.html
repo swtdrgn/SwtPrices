@@ -1,0 +1,471 @@
+<? require("include/template.php"); is_auth(true); ?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+	<? include_meta_content(); ?>
+	
+	<style>
+		.offer_container{
+			width: 48%;
+			display: inline-block;
+		}
+	
+		.offer_list{
+			overflow-y:scroll;
+			background-color: white;
+			display: inline-block;
+			height: 100px;
+			width: 100%;
+		}
+		
+		
+		a.button{
+			background-color: #EFEFEF;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			border: 1px solid black;
+			padding: 1px 5px 1px 5px;
+			font-weight:bold;
+			cursor: pointer;
+		}
+		
+		a.button:hover{
+			background-color: yellow;
+		}
+		
+		.game_result{
+			background-color: #E0E0E0;
+			border: 2px solid black;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			margin: 10px 2.5px 0px 2.5px;
+			padding: 5px;
+			text-align: center;
+			cursor:pointer;
+			display:table-cell;
+			vertical-align:middle;
+			width:250px;
+			height: 150px;
+		}
+		
+		.game_result img{
+			width: 250px;
+		}
+		
+		a.selection1{
+			display: block;
+			border-radius: 15px;
+			-moz-border-radius: 15px;
+			-webkit-border-radius: 15px;
+			padding-right: 10px;
+			cursor:pointer;
+		}
+
+		a.selection1:hover{
+			background-color:red;
+		}
+		
+		.selection2{
+			display: block;
+			border-radius: 0px;
+			-moz-border-radius: 0px;
+			-webkit-border-radius: 0px;
+			padding-right: 10px;
+			background-color:green;
+			cursor: default;
+		}
+		
+		#search_item{
+			text-align: center;
+		}
+	</style>
+	
+	<script src="/include/mytrade.js"></script>
+	<script src="/include/trade.js"></script>
+	
+	<body>
+	<? include_body_header();
+		
+	connect_db();
+	$result = mysql_query("SELECT * FROM `steam_trade` WHERE `hashkey` = '" . $_GET["tid"] . "' AND `created` = '" . $_GET["cdate"] . "';" );
+	
+	//echo "SELECT * FROM `steam_trade` WHERE `hashkey` = '" . $_GET["tid"] . "' AND `created` = '" . $_GET["cdate"] . "';";
+	
+	
+	while ($row = mysql_fetch_array($result,MYSQL_ASSOC)){
+		$key = sha1($row["creator"]) . $row["created"];
+		if( $row["type"] == 0 ){
+			if( !isset($trade[$key]) ){
+				$trade[$key]="";
+			}
+			$trade[$key] .= "<a onclick='add_offer_to_wants(this);' class='selection1' icon_url='" . $row["item_url"] . "' gamename='" . $row["item_name"] . "' >" . urldecode($row["item_name"]) . "</a>";
+		}
+		else if( $row["type"] == 1 ){
+			if( !isset($want[$key]) ){
+				$want[$key]="";
+			}
+			$want[$key] .= "<a class='selection1' style='cursor:default;'>" . urldecode($row["item_name"]) . "</a>";
+		}
+		else if( $row["type"] == 2 ){
+			$expire[$key] = $row["expiration"];
+			$note[$key] = urldecode($row["note"]);
+			$user[$key] = $row["creator"];
+			$date[$key] = $row["created"];
+		}
+	}
+	
+	foreach( $note as $key => $n ){
+		echo "<div class=\"results_container\" style=\"padding-bottom: 10px;\"><h3 style=\"margin-bottom: 10px;\">" . $date[$key] . " (Expires: <time>" . $expire[$key] . "</time>)</h3><center>";
+		if( isset($trade[$key]) ){
+			echo "<div class='offer_container' style='margin-right: 1%;'><b>Have</b><div class='offer_list'>" . stripslashes($trade[$key]) . "</div></div>";
+		}
+		else{
+			echo "<div class='offer_container' style='margin-right: 1%;'><b>Have</b><div class='offer_list'></div></div>";
+		}
+		if( isset($want[$key]) ){
+			echo "<div class='offer_container'><b>Want</b><div class='offer_list'>" . stripslashes($want[$key]) . "</div></div>";
+		}
+		else{
+			echo "<div class='offer_container'><b>Want</b><div class='offer_list'></div></div>";
+		}
+		//echo "<div style='overflow-y:scroll; background-color:white; width: 48%; display: inline-block;'>" . $tradetype[$key] . "</div>";
+		echo "<div class='offer_list' style='width: 97%; height: 50px; display: block; margin-bottom: 10px;'>" . $note[$key] . "</div>";
+		echo "</center></div>";
+	}
+		
+    ?>
+<?php mysql_close(); ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<? if( is_auth() ){ ?>
+	
+	<div class="results_container" style="padding-bottom: 20px;">
+	<h3 style="margin-bottom: 10px;">Want Offers</h3>
+	<div style="overflow-x: scroll; min-height: 150px; border-spacing: 10px;">
+	<center id="want_table">
+	</center>
+	</div>
+	</div>
+	
+	
+	<div class="results_container" style="padding-bottom: 20px;">
+	<h3 style="margin-bottom: 10px;">Have Offers</h3>
+	<div style="overflow-x: scroll; min-height: 150px; border-spacing: 10px;">
+	<center id="trade_table">
+<?php
+	
+	$profile_page = @simplexml_load_file( "http://steamcommunity.com/profiles/" . $_SESSION["steam64"] . "/?xml=1");
+	$inv_list = ""; $coupon_list = ""; $tf2 = ""; $sk = ""; $portal = "";
+	$i = 0;
+	
+	if( @$profile_page ){
+	
+		if( strlen($profile_page->customURL) == 0 ){
+			$inv_url = "http://steamcommunity.com/profiles/" . $_SESSION["steam64"];
+		}
+		else{
+			$inv_url = "http://steamcommunity.com/id/" . $profile_page->customURL;
+		}
+			
+		$game_inv_stream = file_get_contents( $inv_url . "/inventory/json/753/1");
+		$game_inv = json_decode($game_inv_stream);
+		
+		if( $game_inv->{"success"} == true ){
+			//print_r($game_inv->{"rgInventory"});
+			
+			foreach( $game_inv->{"rgInventory"} as $game ){
+				//print_r($game);
+				//echo "<br/>";
+				$meta_data = $game->classid . "_" . $game->instanceid;
+				$amount = $game->amount;
+				//$game_inv->rgDescriptions->{$meta_data};
+				$md = $game_inv->rgDescriptions->{$meta_data};
+				$name = $md->name;
+				$icon_url = $md->icon_url;
+				$item_type = $md->type;
+				//print_r($game_inv->rgDescriptions->{$meta_data});
+				$j = 0;
+				if( $md->tradable ){
+					while( $j<$amount ){
+						$inv_list .= '<a id="' . $i . '" class="selection1" onClick="create_item(this,\'' . $name . '\',\'' . $icon_url . '\',\'' . $item_type . '\');">' . $name . '</a>';
+						//echo '<div class="game_result"><img src="http://cdn.steamcommunity.com/economy/image/' . $icon_url . '" /></div>';
+						$j++;
+						$i++;
+					}
+				}
+			}
+		}
+	}
+	else{
+		echo "false!";
+		print_r($_SESSION);
+	}
+	
+	if( @$profile_page ){
+	
+		if( strlen($profile_page->customURL) == 0 ){
+			$inv_url = "http://steamcommunity.com/profiles/" . $_SESSION["steam64"];
+		}
+		else{
+			$inv_url = "http://steamcommunity.com/id/" . $profile_page->customURL;
+		}
+			
+		$game_inv_stream = file_get_contents( $inv_url . "/inventory/json/753/3");
+		$game_inv = json_decode($game_inv_stream);
+		
+		if( $game_inv->{"success"} == true ){
+			//print_r($game_inv->{"rgInventory"});
+			foreach( $game_inv->{"rgInventory"} as $game ){
+				//print_r($game);
+				//echo "<br/>";
+				$meta_data = $game->classid . "_" . $game->instanceid;
+				$amount = $game->amount;
+				//$game_inv->rgDescriptions->{$meta_data};
+				$md = $game_inv->rgDescriptions->{$meta_data};
+				$name = $md->name;
+				$icon_url = $md->icon_url;
+				$item_type = $md->type;
+				//print_r($game_inv->rgDescriptions->{$meta_data});
+				$j = 0;
+				if( $md->tradable ){
+					while( $j<$amount ){
+						$coupon_list .= '<a id="' . $i . '" class="selection1" onClick="create_item(this,\'' . $name . '\',\'' . $icon_url . '\',\'' . $item_type . '\');">' . $name . '</a>';
+						//echo '<div class="game_result"><img src="http://cdn.steamcommunity.com/economy/image/' . $icon_url . '" /></div>';
+						$j++;
+						$i++;
+					}
+				}
+			}
+			//echo $game_inv[0];
+		}
+	}
+	else{
+		echo "false!";
+		print_r($_SESSION);
+	}
+	
+	if( @$profile_page ){
+	
+		if( strlen($profile_page->customURL) == 0 ){
+			$inv_url = "http://steamcommunity.com/profiles/" . $_SESSION["steam64"];
+		}
+		else{
+			$inv_url = "http://steamcommunity.com/id/" . $profile_page->customURL;
+		}
+			
+		$game_inv_stream = file_get_contents( $inv_url . "/inventory/json/440/2");
+		$game_inv = json_decode($game_inv_stream);
+		
+		if( $game_inv->{"success"} == true ){
+			//print_r($game_inv->{"rgInventory"});
+			foreach( $game_inv->{"rgInventory"} as $game ){
+				//print_r($game);
+				//echo "<br/>";
+				$meta_data = $game->classid . "_" . $game->instanceid;
+				$amount = $game->amount;
+				//$game_inv->rgDescriptions->{$meta_data};
+				$md = $game_inv->rgDescriptions->{$meta_data};
+				$name = $md->name;
+				$icon_url = $md->icon_url;
+				$item_type = $md->type;
+				//print_r($game_inv->rgDescriptions->{$meta_data});
+				$j = 0;
+				if( $md->tradable ){
+					while( $j<$amount ){
+						$tf2 .= '<a id="' . $i . '" class="selection1" onClick="create_item(this,\'' . urlencode($name) . '\',\'' . $icon_url . '\',\'' . $item_type . '\');">' . $name . '</a>';
+						//echo '<div class="game_result"><img src="http://cdn.steamcommunity.com/economy/image/' . $icon_url . '" /></div>';
+						$j++;
+						$i++;
+					}
+				}
+			}
+			//echo $game_inv[0];
+		}
+	}
+	else{
+		echo "false!";
+		print_r($_SESSION);
+	}
+	
+	if( @$profile_page ){
+	
+		if( strlen($profile_page->customURL) == 0 ){
+			$inv_url = "http://steamcommunity.com/profiles/" . $_SESSION["steam64"];
+		}
+		else{
+			$inv_url = "http://steamcommunity.com/id/" . $profile_page->customURL;
+		}
+			
+		$game_inv_stream = file_get_contents( $inv_url . "/inventory/json/99900/2417929");
+		$game_inv = json_decode($game_inv_stream);
+		
+		if( $game_inv->{"success"} == true ){
+			//print_r($game_inv->{"rgInventory"});
+			foreach( $game_inv->{"rgInventory"} as $game ){
+				//print_r($game);
+				//echo "<br/>";
+				$meta_data = $game->classid . "_" . $game->instanceid;
+				$amount = $game->amount;
+				//$game_inv->rgDescriptions->{$meta_data};
+				$md = $game_inv->rgDescriptions->{$meta_data};
+				$name = $md->name;
+				$icon_url = $md->icon_url;
+				$item_type = $md->type;
+				//print_r($game_inv->rgDescriptions->{$meta_data});
+				$j = 0;
+				if( $md->tradable ){
+					//while( $j<$amount ){
+					if( $amount > 1 ){
+						$sk .= '<a id="' . $i . '" class="selection1" onClick="create_item(this,\'' . $name . '\',\'' . $icon_url . '\',\'' . $item_type . '\');">' . $name . ' (' . $amount . 'x) </a>';
+					}
+					else{
+						$sk .= '<a id="' . $i . '" class="selection1" onClick="create_item(this,\'' . $name . '\',\'' . $icon_url . '\',\'' . $item_type . '\');">' . $name . '</a>';
+					}
+						//echo '<div class="game_result"><img src="http://cdn.steamcommunity.com/economy/image/' . $icon_url . '" /></div>';
+						$j++;
+						$i++;
+					//}
+				}
+			}
+			//echo $game_inv[0];
+		}
+	}
+	else{
+		echo "false!";
+		print_r($_SESSION);
+	}
+		
+		
+	if( @$profile_page ){
+	
+		if( strlen($profile_page->customURL) == 0 ){
+			$inv_url = "http://steamcommunity.com/profiles/" . $_SESSION["steam64"];
+		}
+		else{
+			$inv_url = "http://steamcommunity.com/id/" . $profile_page->customURL;
+		}
+			
+		$game_inv_stream = file_get_contents( $inv_url . "/inventory/json/620/2");
+		$game_inv = json_decode($game_inv_stream);
+		
+		if( $game_inv->{"success"} == true ){
+			//print_r($game_inv->{"rgInventory"});
+			foreach( $game_inv->{"rgInventory"} as $game ){
+				//print_r($game);
+				//echo "<br/>";
+				$meta_data = $game->classid . "_" . $game->instanceid;
+				$amount = $game->amount;
+				//$game_inv->rgDescriptions->{$meta_data};
+				$md = $game_inv->rgDescriptions->{$meta_data};
+				$name = $md->name;
+				$icon_url = $md->icon_url;
+				$item_type = $md->type;
+				//print_r($game_inv->rgDescriptions->{$meta_data});
+				$j = 0;
+				if( $md->tradable ){
+					while( $j<$amount ){
+						$portal .= '<a id="' . $i . '" class="selection1" onClick="create_item(this,\'' . $name . '\',\'' . $icon_url . '\',\'' . $item_type . '\');">' . $name . '</a>';
+						//echo '<div class="game_result"><img src="http://cdn.steamcommunity.com/economy/image/' . $icon_url . '" /></div>';
+						$j++;
+						$i++;
+					}
+				}
+			}
+			//echo $game_inv[0];
+		}
+	}
+	else{
+		echo "false!";
+		print_r($_SESSION);
+	}
+		
+	//connect_db();
+?>
+	</center>
+	</div>
+	</div>
+	
+	<center id="have">
+	
+	<div>
+    <div class="results_container" style="padding-bottom: 20px; max-width: 300px; display: inline-block; vertical-align:top;">
+		<h3>Your Games</h3>
+		<div style="margin-top: 15px; margin-bottom: 0px; height:200px; overflow-y: scroll;">
+			<?= $inv_list ?>
+		</div>
+	</div>
+	
+	<div class="results_container" style="padding-bottom: 20px; max-width: 300px; display: inline-block; vertical-align:top;">
+		<h3>Your Coupons</h3>
+		<div style="margin-top: 15px; margin-bottom: 0px; height:200px; overflow-y: scroll;">
+			<?= $coupon_list ?>
+		</div>
+	</div>
+	
+	<div class="results_container" style="padding-bottom: 20px; max-width: 300px; display: inline-block; vertical-align:top;">
+		<h3>Your Team Fortress 2 Items</h3>
+		<div style="margin-top: 15px; margin-bottom: 0px; height:200px; overflow-y: scroll;">
+			<?= $tf2 ?>
+		</div>
+	</div>
+	
+	<div class="results_container" style="padding-bottom: 20px; max-width: 300px; display: inline-block; vertical-align:top;">
+		<h3>Your Spiral Knights Items</h3>
+		<div style="margin-top: 15px; margin-bottom: 0px; height:200px; overflow-y: scroll;">
+			<?= $sk ?>
+		</div>
+	</div>
+	
+	<div class="results_container" style="padding-bottom: 20px; max-width: 300px; display: inline-block; vertical-align:top;">
+		<h3>Your Portal 2 Items</h3>
+		<div style="margin-top: 15px; margin-bottom: 0px; height:200px; overflow-y: scroll;">
+			<?= $portal ?>
+		</div>
+	</div>
+	</div>
+	
+	
+	
+	<div class="results_container" style="padding-bottom: 20px;">
+	<h3 style="margin-bottom: 10px;">Additional Note</h3>
+		<textarea id="note" style="overflow-x: scroll; width: 95%; height: 150px; border-spacing: 10px; resize:vertical;"></textarea>
+	</div>
+	
+	<input type="button" value="Make Offer" onclick='post_offer("<?= urlencode($_GET["tid"]) ?>","<?= urlencode($_GET["cdate"]) ?>")' />
+	</center>
+	
+	</div>
+    
+    
+  </body>
+</html>
+
+<?} //php mysql_close(); ?>

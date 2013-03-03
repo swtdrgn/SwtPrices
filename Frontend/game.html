@@ -1,0 +1,218 @@
+<?
+	require("include/template.php");
+	function has_game( $steamid, $gameid ){
+		//$xml2 = simplexml_load_file( "http://steamcommunity.com/profiles/" . $steamid . "/games?tab=all&xml=1");
+		$file = file_get_contents( "http://steamcommunity.com/profiles/" . $steamid . "/games?tab=all&xml=1" );
+		$i=0;
+		for($i=0; !$file && $i<10 ;$i++){
+			$file = @file_get_contents( "http://steamcommunity.com/profiles/" . $_SESSION["steam64"] . "/games?tab=all&xml=1" );
+		}
+		if( $i==10 ){
+			return false;
+		}
+		
+		$xml2 = simplexml_load_string($file);
+		
+		
+		foreach($xml2->games[0]->game as $game_iterator){
+			if( (int) $game_iterator->appID[0] == $gameid ){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+?>
+
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+	<head>
+	<? include_meta_content(); ?>
+	<script src="/include/show_hide.js"></script>
+	<style>
+		b.fixleft{
+			margin-left: 10px;
+			position: absolute;
+		}
+		#reviews{
+		
+		}
+		
+		.odd_row{
+			
+		}
+		
+		.game_page{
+			display:table;
+			text-align: center;
+		}
+		
+		.game_page h2{
+			background-color: red;
+			border-top-left-radius: 15px;
+			border-top-right-radius: 15px;
+			-moz-border-radius-topleft: 15px;
+			-moz-border-radius-topright: 15px;
+		}
+		
+	</style>
+	
+	<script type="text/javascript">
+	
+	function update_score( new_score ) {
+		var int_score = parseInt(new_score,10);
+		if( !int_score ){ int_score = 0; }
+		document.getElementById("score").innerHTML = parseInt(int_score);
+	}
+	
+	</script>
+	
+	
+	
+	
+	
+	<body>
+	<? include_body_header(); ?>
+    
+    
+	<?php
+		connect_db();
+		
+		if( isset($_GET["appid"]) ){
+			$result = @mysql_query("SELECT * FROM  `games` WHERE `appid` = " . $_GET["appid"]);
+			$row = @mysql_fetch_array($result,MYSQL_ASSOC);
+	?>
+    
+	<center>
+    <div class="results_container game_page">
+		<? if($row) { ?>
+		<h2><?=$row["name"]?></h2>
+		<? if(!is_null($row["appid"])){ ?>
+		
+		<?
+		
+		try{
+			$disable_attr = "";
+			if(!isset($_SESSION["AuthSteam"]) || !$_SESSION["AuthSteam"] ){
+				$disable_attr = "disabled";
+			}
+			else if( !has_game($_SESSION["steam64"],(int)$row["appid"]) ){
+				$disable_attr = "disabled";
+			}
+		}
+		catch( Exception $e ){
+			$disable_attr = "disabled";
+		}
+		
+		
+		?>
+		
+		
+		
+		
+			<div style="">
+				<img src="http://cdn.steampowered.com/v/gfx/apps/<?= $row["appid"] ?>/header.jpg"/>
+			</div>
+			
+			
+<?
+
+		}
+?>	
+		
+		
+		<div class="links" style="margin-top: 0px;">
+		<div style="cursor: default;"><div align="left"><b class="fixleft">Rating:</b></div><div style="visibility:hidden; display: inline;">(<?= $row["ratingcount"] ?> reviews)</div><?= ($row["ratingcount"]>0)?$row["score"]/$row["ratingcount"]:0 ?><div align="right" style="float:right; margin-right: 10px;">(<?= $row["ratingcount"] ?> reviews)</div></div>
+		<? if(!is_null($row["appid"])){ ?>
+			<div>
+			<a href="http://store.steampowered.com/app/<?=$row["appid"]?>">
+				<div align="left"><b class="fixleft">Steam:</b></div>$<?= $row["steam"] ?>
+			</a>
+			</div>
+		<? } ?>
+		<? if(!empty($row["dp"])){ ?>
+			<? if(!is_null($row["AmazonDL"])){ ?>
+			<a href="http://www.amazon.com/gp/product/<?=$row["dp"]?>?tag=swtprices-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=<?=$row["dp"]?>">
+				<div align="left"><b class="fixleft">Amazon [DL]:</b></div>$<?= $row["AmazonDL"] ?>
+			</a>
+			<? } ?>
+			<? if(!is_null($row["AmazonPC"])){ ?>
+			<a href="http://www.amazon.com/gp/product/<?=$row["dp"]?>?tag=swtprices-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=<?=$row["dp"]?>">
+				<div align="left"><b class="fixleft">Amazon [PC]:</b></div>$<?= $row["AmazonPC"] ?>
+			</a>
+			<? } ?>
+		<? } ?>
+		</div>
+		
+		<div style="clear:both;"></div>
+		
+		<hr style="margin-bottom:0px;"/>
+		<div style="background-color:#E0E0E0;"><b>Review</b></div>
+		<div style="width:100%;">
+			<form name="search_games" action="submit_review.php" method="post" <?= $disable_attr ?> >
+				<div style="margin: 10px 10px 0px 10px;"><b style="float: left;">Display Name:</b> <input name="name" style="width:50%; text-align:center;" maxlength="50"  <?= $disable_attr ?> /></div>
+				<textarea name="review" style="width: 90%; margin: 10px 10px 0px 10px; resize:vertical; height: 50px;" <?= $disable_attr ?> ></textarea><br/>
+				<input name="score" type="range" style="width: 90%; margin: 10px 10px 0px 10px; text-align: center;" min="-100" max="100" step="1" value="0" <?= $disable_attr ?> maxlength="4" onChange="update_score(this.value);" onkeypress="update_score(this.value);" onkeyup="update_score(this.value);" onkeydown="update_score(this.value);" /><br/>
+				<a style="margin-bottom: 5px; display: block;"><div align="left"><b class="fixleft">Your Rating:</b></div> <div id="score">0</div> </a>
+				<input name="submit" type="submit" value="Rate It" <?= $disable_attr ?> />
+				<input name="appid" type="hidden" value="<?= $_GET["appid"] ?>" />
+			</form>
+			<div style="font-size:10px;">Rating System: -100 = terrible, 0 = neutral, 100 = excellent<br/>Must have played 10 hours to review</div>
+		</div>
+	</div>
+	
+	</center>
+	
+<?
+	$result = mysql_query("SELECT * FROM  `game_reviews` WHERE `appid` = " . $_GET["appid"] . " LIMIT 0 , 30");
+	
+	while($row = mysql_fetch_array($result,MYSQL_ASSOC)){
+?>
+	<center>
+		<table cellspacing="0" cellpadding="10px" style="margin: 5px 10px 0px 10px; width:90%;">
+			<tr>
+				<td style="white-space: nowrap; overflow:hidden; text-align: center; background-color:#3BB9FF; width: 25%; border-top-left-radius: 15px; -moz-border-radius-topleft: 15px; border-bottom-left-radius: 15px; -moz-border-radius-bottomleft: 15px; border-right: 1px solid black;">
+					<div style="float:left; width: 75px; text-align:left;"><b>Name:</b></div><?= urldecode($row["name"]) ?><br/>
+					<div style="float:left; width: 75px; text-align:left;"><b>Playtime:</b></div><?= $row["playtime"] ?> hours<br/>
+					<div style="float:left; width: 75px; text-align:left;"><b>Rating:</b></div><?= $row["score"] ?>
+					
+				</td>
+			
+				<td style="vertical-align: top; background-color:#FFFFFF; width: 75%; border-top-right-radius: 15px; -moz-border-radius-topright: 15px; border-bottom-right-radius: 15px; -moz-border-radius-bottomright: 15px;">
+					<div style="float:right; text-align:right; font-size: 10px;">
+						<?
+						
+						$date = date_create($row["date"]);
+						echo date_format($date, 'F d, Y');
+						
+						?>
+					</div>
+					<?= urldecode($row["review"]) ?>
+				</td>
+			</tr>
+		</table>
+	</center>
+		
+		
+<?
+	}
+?>
+	
+<?
+	}
+		}
+	
+	else{
+	}
+?>
+    
+    
+  </body>
+</html>
+
+<?php mysql_close(); ?>
